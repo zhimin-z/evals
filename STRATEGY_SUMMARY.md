@@ -2,6 +2,16 @@
 
 This is a quick reference guide for which evaluation strategies are supported by the OpenAI Evals harness. For detailed information, see [HARNESS_STRATEGIES_ANALYSIS.md](HARNESS_STRATEGIES_ANALYSIS.md).
 
+## 📝 Key Updates (Based on Official Documentation)
+
+**Three major capabilities were initially underestimated:**
+
+1. **Local Model Inference** ✅ - Full support via custom completion functions (transformers, vLLM, llama.cpp)
+2. **Synthetic Data Generation** ✅ - OpenAI Platform can generate test data with GPT-4
+3. **Dashboard & Visualization** ✅ - OpenAI Platform Dashboard with report_url, execution tracing, and visual result exploration
+
+**Updated Coverage**: 25 out of 38 strategies (66%)
+
 ## ✅ Fully Supported Strategies
 
 ### Installation & Setup
@@ -19,7 +29,8 @@ This is a quick reference guide for which evaluation strategies are supported by
 
 ### Model/System Types
 - Remote API-based models (OpenAI, Anthropic, Google, Together)
-- Local models via HuggingFace + LangChain
+- **Local models via custom completion functions** (transformers, vLLM, llama.cpp, local HuggingFace checkpoints)
+- Local models via LangChain wrappers
 - Stateful agents and policies (via Solver framework)
 - Multi-turn interactive systems
 - Tool-using agents
@@ -27,6 +38,7 @@ This is a quick reference guide for which evaluation strategies are supported by
 ### Datasets & Benchmarks
 - JSONL format datasets (local and cloud storage)
 - Git LFS for large datasets
+- **AI-generated test data** (via OpenAI Platform using GPT-4 for diverse test cases and edge cases)
 - Simulated environments (WebArena, Docker-based)
 - Ground truth with reference answers
 - LLM-as-judge configurations
@@ -53,15 +65,18 @@ This is a quick reference guide for which evaluation strategies are supported by
 - Console-only (dry-run)
 - Cloud storage (GCS, Azure Blob)
 
+### Visualization & Reporting
+- **OpenAI Platform Dashboard** with interactive UI for viewing evaluation results
+- **Execution tracing** via JSONL logs and Dashboard Traces view
+- **report_url** in API responses linking to visual dashboard
+- Third-party visualization tools (logviz for log visualization)
+- Integration with Matplotlib/Seaborn for custom charts
+
 ## ⚠️ Partially Supported Strategies
 
 ### Limited Container Support
 - Docker used for specific evals (multistep_web_tasks)
 - Not a general-purpose container strategy
-
-### Limited Synthetic Data
-- Helper scripts for generating eval data
-- Not a runtime data generation feature
 
 ### Limited Performance Measurement
 - Token usage tracking via API
@@ -88,8 +103,6 @@ This is a quick reference guide for which evaluation strategies are supported by
 - Continuous production monitoring
 
 ### Reporting
-- Built-in visualization/charts
-- Interactive dashboards
 - Automated leaderboard submission
 - Regression detection/alerting
 - Demographic/domain subgroup analysis
@@ -111,32 +124,35 @@ These features work but aren't prominently documented:
 
 ## Key Strengths
 
-1. **Flexible model support**: Remote APIs + local models via LangChain
+1. **Flexible model support**: Remote APIs + **full local model inference** (transformers, vLLM, llama.cpp) via custom completion functions
 2. **Rich evaluation types**: From simple string matching to complex LLM-judged criteria
 3. **Interactive capabilities**: Multi-turn dialogues, stateful agents, tool use
 4. **Extensible framework**: Custom completion functions, solvers, and evals
 5. **Multiple recording backends**: Local files, Snowflake, HTTP, cloud storage
+6. **AI-assisted dataset creation**: Generate test data with GPT-4 via OpenAI Platform
+7. **Visualization & dashboards**: OpenAI Platform Dashboard with report_url, execution tracing
 
 ## Key Gaps
 
 1. **No production monitoring**: Not designed for continuous production evaluation
-2. **No visualization**: No built-in charts, dashboards, or reports
-3. **No leaderboard integration**: Manual submission required
-4. **Limited performance profiling**: No latency/throughput measurement
-5. **No subgroup analysis**: Can't stratify by demographics/domains automatically
+2. **No leaderboard integration**: Manual submission required
+3. **Limited performance profiling**: No latency/throughput measurement
+4. **No subgroup analysis**: Can't stratify by demographics/domains automatically
+5. **Limited built-in charts**: Relies on third-party tools (logviz) or custom Matplotlib/Seaborn integration for detailed charting
 
 ## Comparison to Problem Statement
 
 According to the problem statement taxonomy, OpenAI Evals supports:
 
-- **15 out of 22 Phase 0-I strategies** (68%)
-- **3 out of 4 Phase II strategies** (75%)
-- **4 out of 6 Phase III strategies** (67%)
-- **1 out of 6 Phase IV strategies** (17%)
+- **Phase 0 (Provisioning)**: 2 out of 5 strategies (40%)
+- **Phase I (Specification)**: 6 out of 9 strategies (67%)
+- **Phase II (Execution)**: 1 out of 4 strategies (25%)
+- **Phase III (Assessment)**: 4 out of 6 strategies (67%)
+- **Phase IV (Reporting)**: 4 out of 6 strategies (67%)
 
-**Overall: 23 out of 38 strategies (61%)**
+**Overall: 25 out of 38 strategies (66%)**
 
-The harness is strongest in model/system preparation, dataset management, execution, and scoring. It's weakest in reporting/visualization and production monitoring.
+The harness is strongest in specification (dataset prep, model config, judging), assessment (scoring methods), and reporting (dashboards, tracing, charts). It's weakest in production monitoring and specialized execution modes.
 
 ## Recommended Use Cases
 
@@ -152,8 +168,9 @@ The harness is strongest in model/system preparation, dataset management, execut
 
 ### ❌ Poor Fit
 - Production model monitoring
-- Real-time quality dashboards
-- Automated regression detection
-- Public leaderboard submission
+- Real-time continuous evaluation
+- Automated regression detection with alerting
+- Public leaderboard submission (automated)
 - Performance benchmarking (latency/throughput)
 - Energy efficiency measurement
+- Demographic/domain subgroup analysis
