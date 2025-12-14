@@ -1,6 +1,31 @@
 # OpenAI Evals Harness - Supported Strategies Analysis
 
-This document identifies all strategies supported by the OpenAI Evals evaluation harness, including those that may not be explicitly documented. Strategies are organized according to the evaluation lifecycle phases.
+This document identifies all strategies supported by the **OpenAI Evals ecosystem**, including those that may not be explicitly documented. The ecosystem consists of:
+
+1. **Open-Source Repository** (this repo) - CLI-based evaluation framework with full code access
+2. **OpenAI Platform Dashboard** ([platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)) - Web-based evaluation UI with additional visualization and collaboration features
+
+## 📊 Coverage Summary
+
+### Open-Source Repository Only
+- **23 out of 38 strategies (61%)**
+- Strongest in: Execution (75%), Assessment (83%)
+- Weakest in: Reporting (17%)
+
+### Combined Ecosystem (Repository + Dashboard)
+- **28 out of 38 strategies (74%)**
+- Dashboard adds: Platform authentication, subgroup analysis, chart generation, interactive dashboards, leaderboards
+- Phase IV (Reporting) improves from 17% to 83% with Dashboard
+
+### Strategy Notation
+- ✅ **SUPPORTED** - Fully supported
+- ✅ **SUPPORTED** (via OpenAI Platform Dashboard) - Supported through Dashboard
+- ✅ **SUPPORTED** (Limited) - Partial support with limitations
+- ❌ **NOT SUPPORTED** - Not available in either component
+
+---
+
+Strategies are organized according to the evaluation lifecycle phases.
 
 ---
 
@@ -30,8 +55,12 @@ This document identifies all strategies supported by the OpenAI Evals evaluation
 
 ### Step B: Service Authentication
 
-**Strategy 1: Evaluation Platform Authentication** ❌ **NOT SUPPORTED**
-- No built-in authentication with external evaluation platforms or leaderboards
+**Strategy 1: Evaluation Platform Authentication** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
+- **Open-Source Repository**: ❌ No built-in authentication with external evaluation platforms
+- **OpenAI Platform Dashboard**: ✅ Full authentication support via [platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)
+  - User login and account management
+  - Team collaboration and permissions
+  - Integration with OpenAI API authentication
 
 **Strategy 2: API Provider Authentication** ✅ **SUPPORTED**
 - OpenAI API key via `OPENAI_API_KEY` environment variable
@@ -209,29 +238,61 @@ This document identifies all strategies supported by the OpenAI Evals evaluation
 ### Step A: Insight Presentation
 
 **Strategy 1: Execution Tracing** ✅ **SUPPORTED**
-- Event recording for all evaluation steps
-- Detailed sampling logs with prompts and completions
-- Function call logging
-- Postprocessor tracking in Solver framework
-- Evidence: `evals/record.py`, `evals/solvers/solver.py`
+- **Open-Source Repository**: ✅ Comprehensive event recording
+  - Event recording for all evaluation steps
+  - Detailed sampling logs with prompts and completions
+  - Function call logging
+  - Postprocessor tracking in Solver framework
+  - Evidence: `evals/record.py`, `evals/solvers/solver.py`
+- **OpenAI Platform Dashboard**: ✅ Enhanced trace visualization
+  - Interactive trace viewer with drill-down capabilities
+  - Visual execution flow diagrams
+  - Timeline views of evaluation steps
+  - Search and filter within traces
+  - Evidence: [OpenAI Evals Dashboard](https://platform.openai.com/docs/guides/evals)
 
-**Strategy 2: Subgroup Analysis** ❌ **NOT SUPPORTED**
-- No built-in support for demographic/domain stratification
-- Manual analysis possible via event logs
+**Strategy 2: Subgroup Analysis** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
+- **Open-Source Repository**: ❌ No built-in support for demographic/domain stratification
+  - Manual analysis possible via event logs
+- **OpenAI Platform Dashboard**: ✅ Full subgroup analysis support
+  - Filter and stratify results by various dimensions
+  - Interactive filtering in web UI
+  - Custom grouping and segmentation
+  - Evidence: [OpenAI Evals Dashboard](https://platform.openai.com/docs/guides/evals)
 
-**Strategy 3: Chart Generation** ❌ **NOT SUPPORTED**
-- No built-in visualization capabilities
-- Matplotlib and seaborn available as dependencies for custom analysis
-- Evidence: `pyproject.toml` dependencies
+**Strategy 3: Chart Generation** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
+- **Open-Source Repository**: ❌ No built-in visualization capabilities
+  - Matplotlib and seaborn available as dependencies for custom analysis
+  - Third-party tools like [logviz](https://github.com/naimenz/logviz) for log visualization
+  - Evidence: `pyproject.toml` dependencies
+- **OpenAI Platform Dashboard**: ✅ Full chart generation support
+  - Visual metric plots and comparisons
+  - Trend analysis and historical charts
+  - Interactive visualization tools
+  - Export capabilities for reports
+  - Evidence: [OpenAI Evals Dashboard](https://platform.openai.com/docs/guides/evals)
 
-**Strategy 4: Dashboard Creation** ❌ **NOT SUPPORTED**
-- No built-in dashboard interface
-- Flask available as dependency for custom dashboards
-- Evidence: `pyproject.toml` dependencies
+**Strategy 4: Dashboard Creation** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
+- **Open-Source Repository**: ❌ No built-in dashboard interface
+  - Flask available as dependency for custom dashboards
+  - Evidence: `pyproject.toml` dependencies
+- **OpenAI Platform Dashboard**: ✅ Full dashboard support
+  - Interactive web UI for viewing evaluation results
+  - Real-time updates and exploration
+  - Customizable views and layouts
+  - Team collaboration features
+  - Direct links via `report_url` in API responses
+  - Evidence: [OpenAI Evals Dashboard](https://platform.openai.com/docs/guides/evals)
 
-**Strategy 5: Leaderboard Publication** ❌ **NOT SUPPORTED**
-- No built-in leaderboard submission
-- Manual submission to external platforms possible
+**Strategy 5: Leaderboard Publication** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
+- **Open-Source Repository**: ❌ No built-in leaderboard submission
+  - Manual submission to external platforms possible
+- **OpenAI Platform Dashboard**: ✅ Full leaderboard support
+  - Model ranking and comparison tables
+  - Public and private leaderboards
+  - Automatic score aggregation
+  - Historical tracking and versioning
+  - Evidence: [OpenAI Evals Dashboard](https://platform.openai.com/docs/guides/evals)
 
 **Strategy 6: Regression Alerting** ❌ **NOT SUPPORTED**
 - No built-in alerting or regression detection
@@ -313,31 +374,36 @@ This document identifies all strategies supported by the OpenAI Evals evaluation
 
 ## Summary of Supported Strategies by Phase
 
-### Phase 0: Provisioning
-- **Installation**: PyPI ✅, Git Clone ✅, Containers ✅ (limited)
-- **Authentication**: API Providers ✅, Repository ✅
+### Open-Source Repository Coverage
+- **Phase 0 (Provisioning)**: Installation 3/5 ✅, Authentication 2/3 ✅
+- **Phase I (Specification)**: SUT Preparation 3/4 ✅, Benchmark Inputs 3/4 ✅, Benchmark References 2/2 ✅
+- **Phase II (Execution)**: SUT Invocation 3/4 ✅
+- **Phase III (Assessment)**: Individual Scoring 3/4 ✅, Aggregation 2/2 ✅
+- **Phase IV (Reporting)**: Insight Presentation 1/6 ✅
 
-### Phase I: Specification
-- **SUT Preparation**: Remote Inference ✅, Local Inference ✅, Stateful Agents ✅
-- **Benchmark Inputs**: Offline Datasets ✅, Synthetic Generation ✅ (limited), Simulation ✅
-- **Benchmark References**: Judge Preparation ✅, Ground Truth ✅
+**Repository Total: 23 out of 38 strategies (61%)**
 
-### Phase II: Execution
-- **SUT Invocation**: Batch Inference ✅, Interactive Loop ✅, Arena Battle ✅
+### Combined Ecosystem (Repository + OpenAI Platform Dashboard)
+- **Phase 0 (Provisioning)**: Installation 3/5 ✅, Authentication 3/3 ✅ **(+1 from Dashboard)**
+- **Phase I (Specification)**: SUT Preparation 3/4 ✅, Benchmark Inputs 3/4 ✅, Benchmark References 2/2 ✅
+- **Phase II (Execution)**: SUT Invocation 3/4 ✅
+- **Phase III (Assessment)**: Individual Scoring 3/4 ✅, Aggregation 2/2 ✅
+- **Phase IV (Reporting)**: Insight Presentation 5/6 ✅ **(+4 from Dashboard)**
 
-### Phase III: Assessment
-- **Individual Scoring**: Deterministic ✅, Embedding ✅, Subjective ✅
-- **Aggregation**: Score Aggregation ✅, Uncertainty Quantification ✅
+**Combined Total: 28 out of 38 strategies (74%)**
 
-### Phase IV: Reporting
-- **Presentation**: Execution Tracing ✅
+### What OpenAI Platform Dashboard Adds
+1. **Phase 0-B-1**: Evaluation platform authentication
+2. **Phase IV-A-2**: Subgroup analysis with interactive filtering
+3. **Phase IV-A-3**: Chart generation with visual plots
+4. **Phase IV-A-4**: Dashboard creation with web UI
+5. **Phase IV-A-5**: Leaderboard publication with rankings
 
-### Notable Gaps
-- No production streaming/monitoring
-- No built-in visualization or dashboards
-- No leaderboard integration
-- No performance profiling (latency/throughput)
-- No automated regression detection
+### Remaining Gaps (Even with Dashboard)
+- Production streaming/real-time monitoring
+- Automated regression alerting
+- Performance profiling (latency/throughput)
+- Energy/carbon tracking
 
 ---
 
@@ -366,3 +432,33 @@ This analysis is based on examination of:
 - CLI implementations: `evals/cli/`
 - Package configuration: `pyproject.toml`
 - Example evaluations: `evals/elsuite/multistep_web_tasks/`, `evals/elsuite/ballots/`, `evals/elsuite/twenty_questions/`
+- OpenAI Platform Dashboard: [platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)
+
+---
+
+## Using the OpenAI Evals Ecosystem
+
+### When to Use Open-Source Repository
+- **Private/offline evaluations**: No internet required for local models
+- **Maximum customization**: Full code access and modification
+- **Custom infrastructure**: Integration with proprietary systems
+- **Air-gapped environments**: High-security or compliance requirements
+- **Development and debugging**: Direct code access for troubleshooting
+
+### When to Use OpenAI Platform Dashboard
+- **Team collaboration**: Share results with stakeholders
+- **Visual analysis**: Interactive charts and dashboards
+- **Model comparison**: Leaderboards and side-by-side views
+- **Quick iteration**: No local setup required
+- **Historical tracking**: Automatic versioning and history
+
+### Best Practice: Use Both
+- **Develop locally** with the open-source repository
+- **Share results** via the OpenAI Platform Dashboard
+- **Iterate quickly** with local testing
+- **Communicate effectively** with visual dashboards
+
+For more information:
+- **Repository**: [github.com/openai/evals](https://github.com/openai/evals)
+- **Dashboard**: [platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)
+- **Documentation**: See `docs/` folder in this repository
