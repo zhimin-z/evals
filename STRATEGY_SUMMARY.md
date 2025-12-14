@@ -1,233 +1,368 @@
-# OpenAI Evals - Strategy Support Quick Reference
+# OpenAI Evals Harness - Supported Strategies Analysis
 
-This document analyzes which evaluation strategies are supported by the **OpenAI Evals ecosystem**, which includes both:
-1. **Open-Source Repository** (this repo) - CLI-based evaluation framework
-2. **OpenAI Platform Dashboard** ([platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)) - Web-based evaluation UI
+This document identifies all strategies supported by the OpenAI Evals evaluation harness, including those that may not be explicitly documented. Strategies are organized according to the evaluation lifecycle phases.
 
-## 🎯 Scope & Coverage
+---
 
-**Important Note**: The OpenAI Platform Dashboard provides additional capabilities beyond the open-source repository analyzed here. This document combines both to give a complete picture.
+## Phase 0: Provisioning (The Runtime)
 
-### Combined Coverage Statistics
-- **Open-Source Repository Only**: 23/38 strategies (61%)
-- **With OpenAI Platform Dashboard**: 28/38 strategies (74%)
+### Step A: Harness Installation
 
-### Key Dashboard Enhancements
-The OpenAI Platform Dashboard adds support for:
-1. **Dashboard Creation** ✅ - Interactive web UI for viewing results
-2. **Chart Generation** ✅ - Visual metric plots and comparisons  
-3. **Leaderboard Publication** ✅ - Model comparison and ranking views
-4. **Subgroup Analysis** ✅ - Filtering and stratification capabilities
-5. **Execution Tracing** ✅ - Enhanced trace visualization (beyond JSONL logs)
+**Strategy 1: PyPI Packages** ✅ **SUPPORTED**
+- Primary installation method via `pip install evals`
+- Development installation via `pip install -e .`
+- Optional dependencies: `pip install -e .[formatters]`, `pip install -e .[torch]`
+- Evidence: `pyproject.toml`, `README.md`
 
-## ✅ Fully Supported Strategies
+**Strategy 2: Git Clone** ✅ **SUPPORTED**
+- Direct cloning from GitHub repository
+- Git LFS for large data files (`evals/registry/data/**/*.jsonl filter=lfs`)
+- Evidence: `README.md`, `.gitattributes`
 
-### Installation & Setup
-- PyPI package installation (`pip install evals`)
-- Git clone with Git LFS for large datasets
-- Docker containers (for specific evals like multistep_web_tasks)
+**Strategy 3: Container Images** ✅ **SUPPORTED** (Limited)
+- Docker images for specific evals (multistep_web_tasks)
+- WebArena Docker containers for simulated internet environments
+- Evidence: `evals/elsuite/multistep_web_tasks/docker/` directory contains Dockerfiles
 
-### Authentication
-- OpenAI API (GPT-3.5, GPT-4)
-- Anthropic (Claude)
-- Google Gemini
-- Together AI
-- HuggingFace Hub (via LangChain)
-- Custom API endpoints
+**Strategy 4: Binary Packages** ❌ **NOT SUPPORTED**
 
-### Model/System Types
-- Remote API-based models (OpenAI, Anthropic, Google, Together)
-- **Local models via custom completion functions** (transformers, vLLM, llama.cpp, local HuggingFace checkpoints)
-- Local models via LangChain wrappers
-- Stateful agents and policies (via Solver framework)
-- Multi-turn interactive systems
-- Tool-using agents
+**Strategy 5: Node Package** ❌ **NOT SUPPORTED**
 
-### Datasets & Benchmarks
-- JSONL format datasets (local and cloud storage)
+### Step B: Service Authentication
+
+**Strategy 1: Evaluation Platform Authentication** ❌ **NOT SUPPORTED**
+- No built-in authentication with external evaluation platforms or leaderboards
+
+**Strategy 2: API Provider Authentication** ✅ **SUPPORTED**
+- OpenAI API key via `OPENAI_API_KEY` environment variable
+- Support for multiple API providers through solvers:
+  - OpenAI (via `openai` package)
+  - Anthropic (via `anthropic` package, `evals/solvers/providers/anthropic`)
+  - Google (Gemini via `google-generativeai` package, `evals/solvers/providers/google`)
+  - Together AI (`evals/solvers/providers/together`)
+- Custom API endpoints via `api_base` parameter
+- Evidence: `README.md`, `evals/completion_fns/openai.py`, `evals/solvers/providers/`
+
+**Strategy 3: Repository Authentication** ✅ **SUPPORTED**
+- HuggingFace Hub integration via LangChain
+- Git-based package installation for gated models
+- Evidence: `evals/completion_fns/langchain_llm.py`, `evals/registry/completion_fns/langchain_llms.yaml`
+
+---
+
+## Phase I: Specification (The Contract)
+
+### Step A: SUT Preparation
+
+**Strategy 1: Model-as-a-Service (Remote Inference)** ✅ **SUPPORTED**
+- OpenAI API models (GPT-3.5, GPT-4, etc.) via `OpenAICompletionFn` and `OpenAIChatCompletionFn`
+- Custom API endpoints via `api_base` parameter
+- Support for Anthropic, Google Gemini, Together AI via solver providers
+- Evidence: `evals/completion_fns/openai.py`, `evals/solvers/providers/`
+
+**Strategy 2: Model-in-Process (Local Inference)** ✅ **SUPPORTED**
+- HuggingFace models via LangChain integration (`LangChainLLMCompletionFn`, `LangChainChatModelCompletionFn`)
+- Local model loading through LangChain's `HuggingFaceHub`
+- Support for arbitrary LangChain LLMs and chat models
+- Evidence: `evals/completion_fns/langchain_llm.py`, `evals/registry/completion_fns/langchain_llms.yaml`
+
+**Strategy 3: Algorithm Implementation (In-Memory Structures)** ❌ **NOT SUPPORTED**
+- No built-in support for ANN algorithms, knowledge graph embeddings, or specialized data structures
+
+**Strategy 4: Policy/Agent Instantiation (Stateful Controllers)** ✅ **SUPPORTED**
+- Solver framework supports stateful agents via `Solver` class
+- Interactive multi-turn evaluations with state management
+- Tool-using agents in evaluations like `bugged_tools`, `multistep_web_tasks`
+- Evidence: `evals/solvers/solver.py`, `evals/task_state.py`, `evals/elsuite/bugged_tools/`, `evals/elsuite/multistep_web_tasks/`
+
+### Step B: Benchmark Preparation (Inputs)
+
+**Strategy 1: Benchmark Dataset Preparation (Offline)** ✅ **SUPPORTED**
+- JSONL format for datasets
+- Local file paths and cloud storage URLs (GCS, Azure Blob)
 - Git LFS for large datasets
-- **AI-generated test data** (via OpenAI Platform using GPT-4 for diverse test cases and edge cases)
-- Simulated environments (WebArena, Docker-based)
-- Ground truth with reference answers
-- LLM-as-judge configurations
+- Data loading via `evals.get_jsonl()`
+- Dataset registry in `evals/registry/data/`
+- Evidence: `evals/data.py`, `evals/registry/data/`, `.gitattributes`, `docs/build-eval.md`
 
-### Execution Modes
-- Batch inference (parallel or sequential)
-- Interactive multi-turn dialogues
-- Head-to-head model comparisons (arena battles)
-- Multi-agent scenarios (e.g., influencer vs voter)
+**Strategy 2: Synthetic Data Generation (Generative)** ✅ **SUPPORTED** (Limited)
+- Scripts for generating eval data (`battle_generator.py`, `modelgraded_generator.py`, `pattern_identification_generator.py`)
+- Not a primary runtime feature, but available for dataset creation
+- Evidence: `scripts/` directory
 
-### Scoring Methods
-- Exact string matching
-- Substring/fuzzy matching
-- JSON structural equality
-- Embedding-based similarity
-- LLM-as-judge (subjective evaluation)
-- Accuracy, F-score, precision, recall
-- Bootstrap uncertainty quantification
+**Strategy 3: Simulation Environment Setup (Simulated)** ✅ **SUPPORTED**
+- WebArena integration for simulated internet environments
+- Docker-based environments (shopping websites, forums, GitLab, Wikipedia)
+- Interactive web browser environments with Playwright
+- Evidence: `evals/elsuite/multistep_web_tasks/`, Docker configurations
 
-### Recording & Logging
-- Local JSON Lines files
-- Snowflake database
-- HTTP POST to custom endpoints
-- Console-only (dry-run)
-- Cloud storage (GCS, Azure Blob)
+**Strategy 4: Production Traffic Sampling (Online)** ❌ **NOT SUPPORTED**
+- No built-in support for real-time production traffic sampling
 
-### Visualization & Reporting
+### Step C: Benchmark Preparation (References)
 
-**Via OpenAI Platform Dashboard** ([Get started →](https://platform.openai.com/docs/guides/evals)):
-- ✅ **Interactive Dashboard UI** - Web-based evaluation result viewer
-- ✅ **Chart Generation** - Visual metric plots, comparisons, and trend analysis
-- ✅ **Execution Tracing** - Enhanced trace visualization with drill-down capabilities
-- ✅ **Leaderboard Views** - Model ranking and comparison tables
-- ✅ **Subgroup Analysis** - Filter and stratify results by various dimensions
-- ✅ **report_url** - Direct links from API responses to visual dashboard
+**Strategy 1: Judge Preparation** ✅ **SUPPORTED**
+- Model-graded evaluations using LLMs as judges
+- Configurable judge models via `ModelBasedClassify` class
+- Multiple evaluation types: `cot_classify`, `classify_cot`, `classify`
+- Pre-defined judge templates in `evals/registry/modelgraded/`:
+  - `fact.yaml` - Factual consistency checking
+  - `closedqa.yaml` - Question answering with criteria
+  - `battle.yaml` - Head-to-head comparisons
+  - `humor.yaml`, `security.yaml`, `diversity.yaml`, etc.
+- Evidence: `evals/elsuite/modelgraded/classify.py`, `evals/registry/modelgraded/`
 
-**Via Open-Source Repository**:
-- ✅ **JSONL Event Logs** - Detailed execution traces for programmatic analysis
-- ✅ **Third-party tools** - Integration with logviz, Matplotlib, Seaborn for custom visualization
+**Strategy 2: Ground Truth Preparation** ✅ **SUPPORTED**
+- Pre-loaded reference answers in JSONL datasets via `ideal` field
+- Embedding-based retrieval with pre-computed embeddings via `RetrievalCompletionFn`
+- Evidence: `evals/completion_fns/retrieval.py`, dataset format in `docs/build-eval.md`
 
-## ⚠️ Partially Supported Strategies
+---
 
-### Limited Container Support
-- Docker used for specific evals (multistep_web_tasks)
-- Not a general-purpose container strategy
+## Phase II: Execution (The Run)
 
-### Limited Performance Measurement
-- Token usage tracking via API
-- No built-in latency/throughput profiling
-- No energy/carbon measurement
+### Step A: SUT Invocation
 
-## ❌ Not Supported Strategies
+**Strategy 1: Batch Inference** ✅ **SUPPORTED**
+- Primary execution mode via `eval_all_samples()`
+- Parallel processing with configurable thread count (`EVALS_THREADS` env var)
+- Support for sequential mode (`EVALS_SEQUENTIAL` env var)
+- Sample limiting via `--max_samples` flag
+- Seed-based reproducibility
+- Evidence: `evals/eval.py`, `evals/cli/oaieval.py`
 
-### Installation
-- Binary packages (standalone executables)
-- Node.js/npm packages
+**Strategy 2: Interactive Loop** ✅ **SUPPORTED**
+- Multi-turn evaluations via Solver framework
+- Stateful interactions using `TaskState` and `SolverResult`
+- Examples in:
+  - `twenty_questions` - Multi-turn guessing game
+  - `bugged_tools` - Tool interaction
+  - `multistep_web_tasks` - Browser and terminal interactions
+  - `ballots` - Multi-agent dialogue (influencer vs voter)
+- Evidence: `evals/task_state.py`, `evals/solvers/solver.py`, `evals/elsuite/twenty_questions/`, `evals/elsuite/ballots/`
 
-### Authentication
-- ~~Evaluation platform/leaderboard authentication~~ (Now supported via OpenAI Platform Dashboard login)
+**Strategy 3: Arena Battle** ✅ **SUPPORTED**
+- Head-to-head model comparisons via `battle.yaml` template
+- Multi-model evaluations (e.g., ballots eval with voter and influencer models)
+- Battle data generation script
+- Evidence: `evals/registry/modelgraded/battle.yaml`, `scripts/battle_generator.py`, `evals/elsuite/ballots/`
 
-### System Types
-- Specialized algorithms (ANN, knowledge graphs) without wrapping in LLM interface
+**Strategy 4: Production Streaming** ❌ **NOT SUPPORTED**
+- No built-in support for continuous production traffic processing
 
-### Data Sources
-- Real-time production traffic sampling
-- Online stream processing
+---
 
-### Execution
-- Continuous production monitoring (real-time streaming)
+## Phase III: Assessment (The Score)
 
-### Reporting
-- ~~Automated leaderboard submission~~ (Now supported via OpenAI Platform Dashboard)
-- Automated regression detection with alerting
-- ~~Demographic/domain subgroup analysis~~ (Now supported via OpenAI Platform Dashboard filtering)
+### Step A: Individual Scoring
 
-## 🔍 Undocumented but Functional Features
+**Strategy 1: Deterministic Measurement** ✅ **SUPPORTED**
+- **Exact Match**: `Match` class - prefix matching (`a.startswith(b)`)
+- **Substring Match**: `Includes` class - substring checking (`b in a`)
+- **Fuzzy Match**: `FuzzyMatch` class - bidirectional substring (`a in b or b in a`)
+- **JSON Match**: `JsonMatch` class - structural JSON equality
+- **JSON Validation**: `JsonValidator` class - schema validation
+- Token-based metrics via `evaluate` library integration
+- Custom metric computation in eval classes
+- Evidence: `evals/elsuite/basic/`, `evals/api.py`, `pyproject.toml` (evaluate dependency)
 
-These features work but aren't prominently documented:
+**Strategy 2: Embedding Measurement** ✅ **SUPPORTED**
+- Embedding-based retrieval with cosine similarity via `RetrievalCompletionFn`
+- Integration with OpenAI embedding models (`text-embedding-ada-002`)
+- Sentence embeddings via `spacy-universal-sentence-encoder`
+- Evidence: `evals/completion_fns/retrieval.py`, `pyproject.toml` dependencies
 
-1. **HttpRecorder** - POST evaluation results to HTTP endpoints
-2. **Multi-model evaluations** - Multiple models in one eval (e.g., ballots)
-3. **Docker environments** - For simulated internet/web tasks
-4. **Cloud storage paths** - GCS and Azure Blob support
-5. **Solver postprocessors** - Output transformation pipeline
-6. **HumanCliSolver** - Interactive human evaluation
-7. **External registries** - Load custom eval/completion function registries
-8. **Meta-evaluations** - Evaluate the evaluators themselves
-9. **Nested solvers** - CoT, few-shot, self-consistency wrappers
-10. **Rate limiting & retries** - Automatic API error handling
+**Strategy 3: Subjective Measurement** ✅ **SUPPORTED**
+- Model-graded evaluations via `ModelBasedClassify`
+- Multiple evaluation formats:
+  - Chain-of-thought then classify (`cot_classify`)
+  - Classify then chain-of-thought (`classify_cot`)
+  - Direct classification (`classify`)
+- Configurable choice strings and scoring
+- Meta-evaluations to validate judge quality
+- Evidence: `evals/elsuite/modelgraded/classify.py`, `docs/eval-templates.md`
 
-## Key Strengths
+**Strategy 4: Performance Measurement** ❌ **NOT SUPPORTED** (Limited)
+- No built-in latency/throughput measurement
+- Token usage tracking via API responses
+- No explicit energy/carbon footprint measurement
 
-**Combined (Open-Source + Platform Dashboard):**
-1. **Flexible model support**: Remote APIs + **full local model inference** (transformers, vLLM, llama.cpp) via custom completion functions
-2. **Rich evaluation types**: From simple string matching to complex LLM-judged criteria
-3. **Interactive capabilities**: Multi-turn dialogues, stateful agents, tool use
-4. **Extensible framework**: Custom completion functions, solvers, and evals
-5. **Multiple recording backends**: Local files, Snowflake, HTTP, cloud storage
-6. **AI-assisted dataset creation**: Generate test data with GPT-4 via OpenAI Platform
-7. **Full visualization suite**: OpenAI Platform Dashboard with charts, leaderboards, trace viewers, and subgroup analysis
+### Step B: Collective Aggregation
 
-**Open-Source Repository Strengths:**
-- Maximum flexibility and customization
-- Run evaluations offline or in private environments
-- Full control over data and infrastructure
-- Integration with custom tooling and workflows
+**Strategy 1: Score Aggregation** ✅ **SUPPORTED**
+- Accuracy calculation via `get_accuracy()`
+- F-score, precision, recall via confusion matrix
+- Matthews correlation coefficient
+- Custom metric aggregation in eval `run()` methods
+- Bootstrap sampling for uncertainty
+- Evidence: `evals/metrics.py`
 
-## Key Gaps
+**Strategy 2: Uncertainty Quantification** ✅ **SUPPORTED**
+- Bootstrap accuracy standard deviation via `get_bootstrap_accuracy_std()`
+- Standard error calculations for ballot success rates
+- Evidence: `evals/metrics.py`, `evals/elsuite/ballots/`
 
-**Even with OpenAI Platform Dashboard:**
-1. **No production monitoring**: Not designed for continuous production evaluation or real-time streaming
-2. **Limited performance profiling**: No built-in latency/throughput measurement
-3. **No automated regression alerting**: Manual monitoring required
-4. **No energy/carbon tracking**: Environmental impact metrics not available
+---
 
-**Open-Source Repository Only:**
-5. ~~**No built-in visualization**~~ (Addressed by OpenAI Platform Dashboard)
-6. ~~**No leaderboard views**~~ (Addressed by OpenAI Platform Dashboard)  
-7. ~~**No subgroup analysis**~~ (Addressed by OpenAI Platform Dashboard filtering)
+## Phase IV: Reporting (The Output)
 
-## Comparison to Problem Statement
+### Step A: Insight Presentation
 
-According to the problem statement taxonomy:
+**Strategy 1: Execution Tracing** ✅ **SUPPORTED**
+- Event recording for all evaluation steps
+- Detailed sampling logs with prompts and completions
+- Function call logging
+- Postprocessor tracking in Solver framework
+- Evidence: `evals/record.py`, `evals/solvers/solver.py`
 
-### Open-Source Repository Coverage
-- **Phase 0 (Provisioning)**: 4 out of 7 strategies (57%)
-- **Phase I (Specification)**: 7 out of 10 strategies (70%)
-- **Phase II (Execution)**: 3 out of 4 strategies (75%)
-- **Phase III (Assessment)**: 5 out of 6 strategies (83%)
-- **Phase IV (Reporting)**: 1 out of 6 strategies (17%)
+**Strategy 2: Subgroup Analysis** ❌ **NOT SUPPORTED**
+- No built-in support for demographic/domain stratification
+- Manual analysis possible via event logs
 
-**Repository Only: 23 out of 38 strategies (61%)**
+**Strategy 3: Chart Generation** ❌ **NOT SUPPORTED**
+- No built-in visualization capabilities
+- Matplotlib and seaborn available as dependencies for custom analysis
+- Evidence: `pyproject.toml` dependencies
 
-### Combined (Repository + OpenAI Platform Dashboard) Coverage
-- **Phase 0 (Provisioning)**: 5 out of 7 strategies (71%) - *+1 from platform auth*
-- **Phase I (Specification)**: 7 out of 10 strategies (70%) - *unchanged*
-- **Phase II (Execution)**: 3 out of 4 strategies (75%) - *unchanged*
-- **Phase III (Assessment)**: 5 out of 6 strategies (83%) - *unchanged*
-- **Phase IV (Reporting)**: 5 out of 6 strategies (83%) - *+4 from dashboard UI, charts, leaderboards, subgroup analysis*
+**Strategy 4: Dashboard Creation** ❌ **NOT SUPPORTED**
+- No built-in dashboard interface
+- Flask available as dependency for custom dashboards
+- Evidence: `pyproject.toml` dependencies
 
-**Combined Total: 28 out of 38 strategies (74%)**
+**Strategy 5: Leaderboard Publication** ❌ **NOT SUPPORTED**
+- No built-in leaderboard submission
+- Manual submission to external platforms possible
 
-### What OpenAI Platform Dashboard Adds
-1. **Phase 0-B**: Platform authentication (evaluation platform login)
-2. **Phase IV-A-2**: Subgroup analysis (dashboard filtering/stratification)
-3. **Phase IV-A-3**: Chart generation (visual metric plots)
-4. **Phase IV-A-4**: Dashboard creation (interactive web UI)
-5. **Phase IV-A-5**: Leaderboard publication (model ranking views)
+**Strategy 6: Regression Alerting** ❌ **NOT SUPPORTED**
+- No built-in alerting or regression detection
 
-The ecosystem is strongest in assessment (83%) and execution (75%). With the Dashboard, reporting improves from 17% to 83%. Weakest areas remain production monitoring and real-time streaming.
+---
 
-## Recommended Use Cases
+## Additional Strategies (Not in Original Taxonomy)
 
-### ✅ Excellent Fit (Open-Source + Dashboard)
-- Academic benchmark evaluation with public results
-- Model comparison studies with visual dashboards
-- Team collaboration on evaluation workflows
-- Prompt engineering experiments with historical tracking
-- Agent capability testing with trace visualization
-- RAG system evaluation with metric charting
-- Multi-turn dialogue assessment
-- Tool use evaluation
+### Logging and Recording
 
-### ✅ Good Fit (Open-Source Only)
-- Private/offline evaluation workflows
-- Custom evaluation logic and metrics
-- Integration with proprietary systems
-- Air-gapped or high-security environments
-- Maximum customization requirements
+**Multiple Recording Backends** ✅ **SUPPORTED**
+- **LocalRecorder**: JSON Lines files (default)
+- **Recorder**: Snowflake database integration
+- **HttpRecorder**: POST results to HTTP endpoint
+- **DummyRecorder**: Console-only logging (dry-run mode)
+- Cloud storage support (GCS, Azure Blob) for log files
+- Evidence: `evals/record.py`, `evals/cli/oaieval.py`
 
-### ❌ Poor Fit (Even with Dashboard)
-- Real-time production model monitoring
-- Continuous evaluation with live traffic
-- Automated regression detection with alerting
-- Performance benchmarking (latency/throughput)
-- Energy efficiency measurement
-- Compliance-driven demographic analysis
+### Advanced Completion Function Features
 
-## 📚 Additional Resources
+**Chain-of-Thought Wrapper** ✅ **SUPPORTED**
+- `ChainOfThoughtCompletionFn` for automatic CoT prompting
+- Evidence: `evals/completion_fns/cot.py`, `evals/registry/completion_fns/cot.yaml`
 
-- **OpenAI Platform Dashboard**: [platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)
-- **Open-Source Repository**: [github.com/openai/evals](https://github.com/openai/evals)
-- **Documentation**: See `docs/` folder in this repository
-- **Third-Party Tools**: [logviz](https://github.com/naimenz/logviz) for log visualization
+**LangChain Integration** ✅ **SUPPORTED**
+- Math reasoning via `LangChainMathChainCompletionFn`
+- Arbitrary LangChain LLMs and chains
+- Evidence: `evals/completion_fns/langchain_math.py`, `evals/completion_fns/langchain_llm.py`
+
+**Retrieval-Augmented Generation** ✅ **SUPPORTED**
+- Embedding-based retrieval with `RetrievalCompletionFn`
+- Top-k document retrieval with cosine similarity
+- Evidence: `evals/completion_fns/retrieval.py`
+
+**Custom Completion Functions** ✅ **SUPPORTED**
+- Extensible via `CompletionFn` protocol
+- Registry-based registration in `evals/registry/completion_fns/`
+- External registry paths via `--registry_path`
+- Evidence: `docs/completion-fns.md`, `evals/api.py`
+
+### Solver-Specific Features
+
+**Nested Solvers** ✅ **SUPPORTED**
+- Chain-of-thought solver (`cot_solver.py`)
+- Few-shot solver (`fewshot_solver.py`)
+- Self-consistency solver (`self_consistency_solver.py`)
+- HHH solver for helpfulness/harmlessness/honesty (`hhh_solver.py`)
+- Evidence: `evals/solvers/nested/`
+
+**Postprocessors** ✅ **SUPPORTED**
+- Configurable output postprocessing in Solver framework
+- Chained postprocessor application
+- Evidence: `evals/solvers/solver.py`, `evals/solvers/postprocessors/`
+
+**Human-in-the-Loop** ✅ **SUPPORTED**
+- `HumanCliSolver` for interactive human evaluation
+- Evidence: `evals/solvers/human_cli_solver.py`
+
+### Evaluation Set Management
+
+**Eval Sets** ✅ **SUPPORTED**
+- Running multiple evals as a set via `oaievalset`
+- Progress tracking with resume capability
+- Configurable threading and timeouts
+- Evidence: `evals/cli/oaievalset.py`, `docs/run-evals.md`
+
+### Authentication and API Features
+
+**Rate Limiting and Retries** ✅ **SUPPORTED**
+- Automatic retry on rate limits and API errors
+- Configurable retry logic
+- Evidence: `evals/completion_fns/openai.py`, `evals/utils/api_utils.py`
+
+**Caching** ✅ **SUPPORTED**
+- `--cache` flag for response caching
+- Evidence: `evals/cli/oaieval.py`
+
+---
+
+## Summary of Supported Strategies by Phase
+
+### Phase 0: Provisioning
+- **Installation**: PyPI ✅, Git Clone ✅, Containers ✅ (limited)
+- **Authentication**: API Providers ✅, Repository ✅
+
+### Phase I: Specification
+- **SUT Preparation**: Remote Inference ✅, Local Inference ✅, Stateful Agents ✅
+- **Benchmark Inputs**: Offline Datasets ✅, Synthetic Generation ✅ (limited), Simulation ✅
+- **Benchmark References**: Judge Preparation ✅, Ground Truth ✅
+
+### Phase II: Execution
+- **SUT Invocation**: Batch Inference ✅, Interactive Loop ✅, Arena Battle ✅
+
+### Phase III: Assessment
+- **Individual Scoring**: Deterministic ✅, Embedding ✅, Subjective ✅
+- **Aggregation**: Score Aggregation ✅, Uncertainty Quantification ✅
+
+### Phase IV: Reporting
+- **Presentation**: Execution Tracing ✅
+
+### Notable Gaps
+- No production streaming/monitoring
+- No built-in visualization or dashboards
+- No leaderboard integration
+- No performance profiling (latency/throughput)
+- No automated regression detection
+
+---
+
+## Undocumented or Under-Documented Strategies
+
+1. **HTTP Recording**: The `HttpRecorder` class for POSTing evaluation results to HTTP endpoints is functional but not documented in main docs
+2. **Multi-Model Evaluations**: Ballots eval demonstrates multi-agent scenarios but this pattern isn't generalized in documentation
+3. **Docker Environments**: Multistep web tasks use Docker extensively, but this isn't highlighted as a general strategy
+4. **Cloud Storage**: Support for GCS and Azure Blob paths in `LocalRecorder` is implemented but not prominently documented
+5. **Solver Postprocessors**: The postprocessor framework in Solvers is functional but minimally documented
+6. **Human-in-the-Loop**: `HumanCliSolver` exists but isn't documented in main evaluation guides
+7. **External Registries**: `--registry_path` for loading custom registries is mentioned but not emphasized
+8. **Meta-Evaluations**: The concept of evaluating the evaluators is implemented but not systematically documented
+9. **Nested Solvers**: Chain-of-thought, few-shot, and self-consistency solvers are available but not well-documented
+
+---
+
+## Implementation Evidence Summary
+
+This analysis is based on examination of:
+- Core implementation files: `evals/eval.py`, `evals/api.py`, `evals/record.py`, `evals/solvers/solver.py`
+- Completion functions: `evals/completion_fns/`
+- Eval templates: `evals/elsuite/basic/`, `evals/elsuite/modelgraded/`
+- Registry configurations: `evals/registry/`
+- Documentation: `docs/`, `README.md`
+- CLI implementations: `evals/cli/`
+- Package configuration: `pyproject.toml`
+- Example evaluations: `evals/elsuite/multistep_web_tasks/`, `evals/elsuite/ballots/`, `evals/elsuite/twenty_questions/`
