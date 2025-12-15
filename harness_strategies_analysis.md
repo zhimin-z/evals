@@ -180,17 +180,24 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 *Definition:* Running the System Under Test to generate outputs or take actions.
 
-**Strategy 1: Batch Inference** ✅ **SUPPORTED**
+**Strategy 1: Batch Inference** ✅ **SUPPORTED** (Native)
+- Execute multiple input samples through a single SUT instance via configurable invocation strategies
+- **Direct model calls**: Simple prompt-response via `OpenAICompletionFn`, `OpenAIChatCompletionFn`
+- **Sophisticated multi-step architectures**:
+  - **Prompt engineering**: Chain-of-thought wrapper (`ChainOfThoughtCompletionFn`)
+  - **Retrieval augmentation**: RAG with embedding-based retrieval (`RetrievalCompletionFn`)
+  - **Multi-turn dialog**: Solver framework with `TaskState` and `SolverResult`
+  - **Agent scaffolds**: Nested solvers (CoT, few-shot, self-consistency, HHH), postprocessors, human-in-the-loop
+- **Third-Party Integration support**: LangChain integration for arbitrary LLMs and chains
+- **Extensibility**: Custom completion functions via `CompletionFn` protocol
+- **Configuration**: Parallel/sequential processing, sample limiting, seed-based reproducibility
 - Primary execution mode via `eval_all_samples()`
-- Parallel processing with configurable thread count (`EVALS_THREADS` env var)
-- Support for sequential mode (`EVALS_SEQUENTIAL` env var)
-- Sample limiting via `--max_samples` flag
-- Seed-based reproducibility
-- Evidence: `evals/eval.py`, `evals/cli/oaieval.py`
+- Evidence: `evals/eval.py`, `evals/cli/oaieval.py`, `evals/completion_fns/`, `evals/solvers/`, `docs/completion-fns.md`
 
-**Strategy 2: Interactive Loop** ✅ **SUPPORTED**
+**Strategy 2: Interactive Loop** ✅ **SUPPORTED** (Native)
 - Multi-turn evaluations via Solver framework
 - Stateful interactions using `TaskState` and `SolverResult`
+- Available out-of-the-box after installing the harness
 - Examples in:
   - `twenty_questions` - Multi-turn guessing game
   - `bugged_tools` - Tool interaction
@@ -198,10 +205,11 @@ Strategies are organized according to the evaluation lifecycle phases.
   - `ballots` - Multi-agent dialogue (influencer vs voter)
 - Evidence: `evals/task_state.py`, `evals/solvers/solver.py`, `evals/elsuite/twenty_questions/`, `evals/elsuite/ballots/`
 
-**Strategy 3: Arena Battle** ✅ **SUPPORTED**
+**Strategy 3: Arena Battle** ✅ **SUPPORTED** (Native)
 - Head-to-head model comparisons via `battle.yaml` template
 - Multi-model evaluations (e.g., ballots eval with voter and influencer models)
 - Battle data generation script
+- Available out-of-the-box after installing the harness
 - Evidence: `evals/registry/modelgraded/battle.yaml`, `scripts/battle_generator.py`, `evals/elsuite/ballots/`
 
 **Strategy 4: Production Streaming** ❌ **NOT SUPPORTED**
@@ -343,74 +351,6 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ---
 
-## Additional Strategies (Not in Original Taxonomy)
-
-### Advanced Completion Function Features
-
-**Chain-of-Thought Wrapper** ✅ **SUPPORTED** (Native)
-- `ChainOfThoughtCompletionFn` for automatic CoT prompting
-- Evidence: `evals/completion_fns/cot.py`, `evals/registry/completion_fns/cot.yaml`
-
-**LangChain Integration** ✅ **SUPPORTED** (via Third-Party Integration)
-- Requires LangChain package installation
-- Math reasoning via `LangChainMathChainCompletionFn`
-- Arbitrary LangChain LLMs and chains
-- Evidence: `evals/completion_fns/langchain_math.py`, `evals/completion_fns/langchain_llm.py`
-
-**Retrieval-Augmented Generation** ✅ **SUPPORTED** (Native)
-- Embedding-based retrieval with `RetrievalCompletionFn`
-- Top-k document retrieval with cosine similarity
-- Available out-of-the-box after installing the harness
-- Evidence: `evals/completion_fns/retrieval.py`
-
-**Custom Completion Functions** ✅ **SUPPORTED** (Native)
-- Extensible via `CompletionFn` protocol
-- Registry-based registration in `evals/registry/completion_fns/`
-- External registry paths via `--registry_path`
-- Available out-of-the-box after installing the harness
-- Evidence: `docs/completion-fns.md`, `evals/api.py`
-
-### Solver-Specific Features
-
-**Nested Solvers** ✅ **SUPPORTED** (Native)
-- Chain-of-thought solver (`cot_solver.py`)
-- Few-shot solver (`fewshot_solver.py`)
-- Self-consistency solver (`self_consistency_solver.py`)
-- HHH solver for helpfulness/harmlessness/honesty (`hhh_solver.py`)
-- Available out-of-the-box after installing the harness
-- Evidence: `evals/solvers/nested/`
-
-**Postprocessors** ✅ **SUPPORTED** (Native)
-- Configurable output postprocessing in Solver framework
-- Chained postprocessor application
-- Available out-of-the-box after installing the harness
-- Evidence: `evals/solvers/solver.py`, `evals/solvers/postprocessors/`
-
-**Human-in-the-Loop** ✅ **SUPPORTED** (Native)
-- `HumanCliSolver` for interactive human evaluation
-- Evidence: `evals/solvers/human_cli_solver.py`
-
-### Evaluation Set Management
-
-**Eval Sets** ✅ **SUPPORTED**
-- Running multiple evals as a set via `oaievalset`
-- Progress tracking with resume capability
-- Configurable threading and timeouts
-- Evidence: `evals/cli/oaievalset.py`, `docs/run-evals.md`
-
-### Authentication and API Features
-
-**Rate Limiting and Retries** ✅ **SUPPORTED**
-- Automatic retry on rate limits and API errors
-- Configurable retry logic
-- Evidence: `evals/completion_fns/openai.py`, `evals/utils/api_utils.py`
-
-**Caching** ✅ **SUPPORTED**
-- `--cache` flag for response caching
-- Evidence: `evals/cli/oaieval.py`
-
----
-
 ## Summary of Supported Strategies by Phase
 
 ### Open-Source Repository Coverage
@@ -446,17 +386,21 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ---
 
-## Undocumented or Under-Documented Strategies
+## Undocumented or Under-Documented Features
 
-1. **HTTP Recording**: The `HttpRecorder` class for POSTing evaluation results to HTTP endpoints is functional but not documented in main docs
-2. **Multi-Model Evaluations**: Ballots eval demonstrates multi-agent scenarios but this pattern isn't generalized in documentation
-3. **Docker Environments**: Multistep web tasks use Docker extensively, but this isn't highlighted as a general strategy
-4. **Cloud Storage**: Support for GCS and Azure Blob paths in `LocalRecorder` is implemented but not prominently documented
-5. **Solver Postprocessors**: The postprocessor framework in Solvers is functional but minimally documented
-6. **Human-in-the-Loop**: `HumanCliSolver` exists but isn't documented in main evaluation guides
-7. **External Registries**: `--registry_path` for loading custom registries is mentioned but not emphasized
+The following implementation details are functional but not prominently documented in the main guides:
+
+1. **HTTP Recording**: The `HttpRecorder` class for POSTing evaluation results to HTTP endpoints (now documented in Phase IV-A-1: Execution Tracing)
+2. **Multi-Model Evaluations**: Ballots eval demonstrates multi-agent scenarios (now documented in Phase II-A-3: Arena Battle)
+3. **Docker Environments**: Multistep web tasks use Docker for simulated environments (documented in Phase I-B-3: Simulation Environment Setup)
+4. **Cloud Storage**: Support for GCS and Azure Blob paths in `LocalRecorder` (now documented in Phase IV-A-1: Execution Tracing)
+5. **Solver Postprocessors**: The postprocessor framework (now documented in Phase II-A-1: Batch Inference as part of agent scaffolds)
+6. **Human-in-the-Loop**: `HumanCliSolver` (now documented in Phase II-A-1: Batch Inference as part of agent scaffolds)
+7. **External Registries**: `--registry_path` for loading custom registries (documented in Phase II-A-1: Batch Inference)
 8. **Meta-Evaluations**: The concept of evaluating the evaluators is implemented but not systematically documented
-9. **Nested Solvers**: Chain-of-thought, few-shot, and self-consistency solvers are available but not well-documented
+9. **Nested Solvers**: Chain-of-thought, few-shot, and self-consistency solvers (now documented in Phase II-A-1: Batch Inference as part of agent scaffolds)
+
+Note: Most of these features are now documented as part of the unified taxonomy strategies, particularly within **Strategy 1: Batch Inference** which includes configurable invocation strategies.
 
 ---
 
