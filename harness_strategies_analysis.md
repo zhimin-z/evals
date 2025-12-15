@@ -1,9 +1,13 @@
 # OpenAI Evals Harness - Supported Strategies Analysis
 
-This document identifies all strategies supported by the **OpenAI Evals ecosystem**, including those that may not be explicitly documented. The ecosystem consists of:
+This document identifies all strategies supported by the **OpenAI Evals ecosystem**, following the **Unified Evaluation Workflow** taxonomy that abstracts evaluation workflows across over 50 frameworks—from text generation to robot manipulation, molecular property prediction, and hardware stress testing.
+
+The ecosystem consists of:
 
 1. **Open-Source Repository** (this repo) - CLI-based evaluation framework with full code access
 2. **OpenAI Platform Dashboard** ([platform.openai.com/docs/guides/evals](https://platform.openai.com/docs/guides/evals)) - Web-based evaluation UI with additional visualization and collaboration features
+
+Every evaluation, no matter the modality, traverses these five phases.
 
 ## 📊 Coverage Summary
 
@@ -31,29 +35,41 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Phase 0: Provisioning (The Runtime)
 
+*Establishing the technical foundation—you cannot evaluate what you cannot run.*
+
 ### Step A: Harness Installation
 
-**Strategy 1: PyPI Packages** ✅ **SUPPORTED**
+*Definition:* Installing dependencies, compiling binaries, building containers, and configuring execution backends.
+
+**Strategy 1: Git Clone** ✅ **SUPPORTED** (Native)
+- Direct cloning from GitHub repository for bleeding-edge versions or development work
+- Git LFS for large data files (`evals/registry/data/**/*.jsonl filter=lfs`)
+- Manual installation from source: `git clone https://github.com/openai/evals && cd evals && pip install -e .`
+- Available out-of-the-box after installation
+- Evidence: `README.md`, `.gitattributes`
+
+**Strategy 2: PyPI Packages** ✅ **SUPPORTED** (Native)
 - Primary installation method via `pip install evals`
 - Development installation via `pip install -e .`
+- Requirements files via `pip install -r requirements.txt`
+- Git-based installations via `pip install git+https://github.com/openai/evals`
 - Optional dependencies: `pip install -e .[formatters]`, `pip install -e .[torch]`
 - Evidence: `pyproject.toml`, `README.md`
 
-**Strategy 2: Git Clone** ✅ **SUPPORTED**
-- Direct cloning from GitHub repository
-- Git LFS for large data files (`evals/registry/data/**/*.jsonl filter=lfs`)
-- Evidence: `README.md`, `.gitattributes`
-
-**Strategy 3: Container Images** ❌ **NOT SUPPORTED**
-- The harness itself is NOT installed via Docker containers
-- Installation is done via PyPI (`pip install evals`) or Git clone
-- Note: Docker IS used within some evaluations (e.g., multistep_web_tasks with WebArena), but this is for running evaluation environments, not for installing the harness
+**Strategy 3: Node Package** ❌ **NOT SUPPORTED**
+- No JavaScript-based installation via npm, npx, or Homebrew
 
 **Strategy 4: Binary Packages** ❌ **NOT SUPPORTED**
+- No standalone executable binaries
 
-**Strategy 5: Node Package** ❌ **NOT SUPPORTED**
+**Strategy 5: Container Images** ❌ **NOT SUPPORTED**
+- The harness itself is NOT installed via Docker containers
+- Installation is done via PyPI (`pip install evals`) or Git clone
+- Note: Docker IS used within some evaluations (e.g., multistep_web_tasks with WebArena) for running evaluation environments, but this is for simulation purposes, not for installing the harness
 
 ### Step B: Service Authentication
+
+*Definition:* Authenticating with model repositories, dataset platforms, evaluation services, and leaderboard APIs.
 
 **Strategy 1: Evaluation Platform Authentication** ✅ **SUPPORTED** (via OpenAI Platform Dashboard)
 - **Open-Source Repository**: ❌ No built-in authentication with external evaluation platforms
@@ -81,9 +97,13 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Phase I: Specification (The Contract)
 
+*Defining the evaluation experiment—what to test, what to test it with, and how to judge the results.*
+
 ### Step A: SUT Preparation
 
-**Strategy 1: Model-as-a-Service (Remote Inference)** ✅ **SUPPORTED**
+*Definition:* Specifying how to interact with the System Under Test (SUT).
+
+**Strategy 1: Model-as-a-Service (Remote Inference)** ✅ **SUPPORTED** (Native)
 - OpenAI API models (GPT-3.5, GPT-4, etc.) via `OpenAICompletionFn` and `OpenAIChatCompletionFn`
 - Custom API endpoints via `api_base` parameter
 - Support for Anthropic, Google Gemini, Together AI via solver providers
@@ -106,7 +126,9 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ### Step B: Benchmark Preparation (Inputs)
 
-**Strategy 1: Benchmark Dataset Preparation (Offline)** ✅ **SUPPORTED**
+*Definition:* Acquiring and configuring the test inputs that will be used to evaluate the SUT.
+
+**Strategy 1: Benchmark Dataset Preparation (Offline)** ✅ **SUPPORTED** (Native)
 - JSONL format for datasets
 - Local file paths and cloud storage URLs (GCS, Azure Blob)
 - Git LFS for large datasets
@@ -130,6 +152,8 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ### Step C: Benchmark Preparation (References)
 
+*Definition:* Pre-computing judges, references, and ground truth materials that will be used to score SUT outputs in Phase III.
+
 **Strategy 1: Judge Preparation** ✅ **SUPPORTED**
 - Model-graded evaluations using LLMs as judges
 - Configurable judge models via `ModelBasedClassify` class
@@ -150,7 +174,11 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Phase II: Execution (The Run)
 
+*Observing SUT behavior—applying test inputs to elicit outputs and actions.*
+
 ### Step A: SUT Invocation
+
+*Definition:* Running the System Under Test to generate outputs or take actions.
 
 **Strategy 1: Batch Inference** ✅ **SUPPORTED**
 - Primary execution mode via `eval_all_samples()`
@@ -183,7 +211,11 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Phase III: Assessment (The Score)
 
+*Converting observations into measurements—judging outputs against quality criteria to produce scores.*
+
 ### Step A: Individual Scoring
+
+*Definition:* Computing metrics for individual test instances based on SUT outputs.
 
 **Strategy 1: Deterministic Measurement** ✅ **SUPPORTED**
 - **Exact Match**: `Match` class - prefix matching (`a.startswith(b)`)
@@ -218,7 +250,9 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ### Step B: Collective Aggregation
 
-**Strategy 1: Score Aggregation** ✅ **SUPPORTED**
+*Definition:* Combining individual assessment results into benchmark-level aggregate metrics—a fundamental operation supported by all evaluation harnesses.
+
+**Strategy 1: Score Aggregation** ✅ **SUPPORTED** (Native)
 - Accuracy calculation via `get_accuracy()`
 - F-score, precision, recall via confusion matrix
 - Matthews correlation coefficient
@@ -235,7 +269,11 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Phase IV: Reporting (The Output)
 
+*Making results actionable—translating metrics into stakeholder-facing insights.*
+
 ### Step A: Insight Presentation
+
+*Definition:* Visualizing metrics and publishing results to internal/external audiences.
 
 **Strategy 1: Execution Tracing** ✅ **SUPPORTED**
 - **Open-Source Repository**: ✅ Comprehensive event recording
