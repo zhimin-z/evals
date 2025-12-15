@@ -275,13 +275,19 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 *Definition:* Visualizing metrics and publishing results to internal/external audiences.
 
-**Strategy 1: Execution Tracing** ✅ **SUPPORTED**
-- **Open-Source Repository**: ✅ Comprehensive event recording
+**Strategy 1: Execution Tracing** ✅ **SUPPORTED** (Native)
+- **Open-Source Repository**: ✅ Comprehensive event recording with configurable backends
   - Event recording for all evaluation steps
   - Detailed sampling logs with prompts and completions
   - Function call logging
   - Postprocessor tracking in Solver framework
-  - Evidence: `evals/record.py`, `evals/solvers/solver.py`
+  - **Recording Backends**:
+    - `LocalRecorder`: JSON Lines files (default) - Native
+    - `HttpRecorder`: POST results to HTTP endpoint - Native
+    - `DummyRecorder`: Console-only logging (dry-run mode) - Native
+    - Cloud storage support (GCS, Azure Blob) for log files - Native
+    - `Recorder`: Snowflake database integration - Third-Party Integration (requires `snowflake-connector-python`)
+  - Evidence: `evals/record.py`, `evals/solvers/solver.py`, `evals/cli/oaieval.py`
 - **OpenAI Platform Dashboard**: ✅ Enhanced trace visualization
   - Interactive trace viewer with drill-down capabilities
   - Visual execution flow diagrams
@@ -339,53 +345,48 @@ Strategies are organized according to the evaluation lifecycle phases.
 
 ## Additional Strategies (Not in Original Taxonomy)
 
-### Logging and Recording
-
-**Multiple Recording Backends** ✅ **SUPPORTED**
-- **LocalRecorder**: JSON Lines files (default)
-- **Recorder**: Snowflake database integration
-- **HttpRecorder**: POST results to HTTP endpoint
-- **DummyRecorder**: Console-only logging (dry-run mode)
-- Cloud storage support (GCS, Azure Blob) for log files
-- Evidence: `evals/record.py`, `evals/cli/oaieval.py`
-
 ### Advanced Completion Function Features
 
-**Chain-of-Thought Wrapper** ✅ **SUPPORTED**
+**Chain-of-Thought Wrapper** ✅ **SUPPORTED** (Native)
 - `ChainOfThoughtCompletionFn` for automatic CoT prompting
 - Evidence: `evals/completion_fns/cot.py`, `evals/registry/completion_fns/cot.yaml`
 
-**LangChain Integration** ✅ **SUPPORTED**
+**LangChain Integration** ✅ **SUPPORTED** (via Third-Party Integration)
+- Requires LangChain package installation
 - Math reasoning via `LangChainMathChainCompletionFn`
 - Arbitrary LangChain LLMs and chains
 - Evidence: `evals/completion_fns/langchain_math.py`, `evals/completion_fns/langchain_llm.py`
 
-**Retrieval-Augmented Generation** ✅ **SUPPORTED**
+**Retrieval-Augmented Generation** ✅ **SUPPORTED** (Native)
 - Embedding-based retrieval with `RetrievalCompletionFn`
 - Top-k document retrieval with cosine similarity
+- Available out-of-the-box after installing the harness
 - Evidence: `evals/completion_fns/retrieval.py`
 
-**Custom Completion Functions** ✅ **SUPPORTED**
+**Custom Completion Functions** ✅ **SUPPORTED** (Native)
 - Extensible via `CompletionFn` protocol
 - Registry-based registration in `evals/registry/completion_fns/`
 - External registry paths via `--registry_path`
+- Available out-of-the-box after installing the harness
 - Evidence: `docs/completion-fns.md`, `evals/api.py`
 
 ### Solver-Specific Features
 
-**Nested Solvers** ✅ **SUPPORTED**
+**Nested Solvers** ✅ **SUPPORTED** (Native)
 - Chain-of-thought solver (`cot_solver.py`)
 - Few-shot solver (`fewshot_solver.py`)
 - Self-consistency solver (`self_consistency_solver.py`)
 - HHH solver for helpfulness/harmlessness/honesty (`hhh_solver.py`)
+- Available out-of-the-box after installing the harness
 - Evidence: `evals/solvers/nested/`
 
-**Postprocessors** ✅ **SUPPORTED**
+**Postprocessors** ✅ **SUPPORTED** (Native)
 - Configurable output postprocessing in Solver framework
 - Chained postprocessor application
+- Available out-of-the-box after installing the harness
 - Evidence: `evals/solvers/solver.py`, `evals/solvers/postprocessors/`
 
-**Human-in-the-Loop** ✅ **SUPPORTED**
+**Human-in-the-Loop** ✅ **SUPPORTED** (Native)
 - `HumanCliSolver` for interactive human evaluation
 - Evidence: `evals/solvers/human_cli_solver.py`
 
