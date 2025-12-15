@@ -8,12 +8,12 @@ This document identifies all strategies supported by the **OpenAI Evals ecosyste
 ## 📊 Coverage Summary
 
 ### Open-Source Repository Only
-- **23 out of 38 strategies (61%)**
+- **22 out of 38 strategies (58%)**
 - Strongest in: Execution (75%), Assessment (83%)
 - Weakest in: Reporting (17%)
 
 ### Combined Ecosystem (Repository + Dashboard)
-- **28 out of 38 strategies (74%)**
+- **27 out of 38 strategies (71%)**
 - Dashboard adds: Platform authentication, subgroup analysis, chart generation, interactive dashboards, leaderboards
 - Phase IV (Reporting) improves from 17% to 83% with Dashboard
 
@@ -44,10 +44,10 @@ Strategies are organized according to the evaluation lifecycle phases.
 - Git LFS for large data files (`evals/registry/data/**/*.jsonl filter=lfs`)
 - Evidence: `README.md`, `.gitattributes`
 
-**Strategy 3: Container Images** ✅ **SUPPORTED** (Limited)
-- Docker images for specific evals (multistep_web_tasks)
-- WebArena Docker containers for simulated internet environments
-- Evidence: `evals/elsuite/multistep_web_tasks/docker/` directory contains Dockerfiles
+**Strategy 3: Container Images** ❌ **NOT SUPPORTED**
+- The harness itself is NOT installed via Docker containers
+- Installation is done via PyPI (`pip install evals`) or Git clone
+- Note: Docker IS used within some evaluations (e.g., multistep_web_tasks with WebArena), but this is for running evaluation environments, not for installing the harness
 
 **Strategy 4: Binary Packages** ❌ **NOT SUPPORTED**
 
@@ -375,22 +375,22 @@ Strategies are organized according to the evaluation lifecycle phases.
 ## Summary of Supported Strategies by Phase
 
 ### Open-Source Repository Coverage
-- **Phase 0 (Provisioning)**: Installation 3/5 ✅, Authentication 2/3 ✅
+- **Phase 0 (Provisioning)**: Installation 2/5 ✅, Authentication 2/3 ✅
 - **Phase I (Specification)**: SUT Preparation 3/4 ✅, Benchmark Inputs 3/4 ✅, Benchmark References 2/2 ✅
 - **Phase II (Execution)**: SUT Invocation 3/4 ✅
 - **Phase III (Assessment)**: Individual Scoring 3/4 ✅, Aggregation 2/2 ✅
 - **Phase IV (Reporting)**: Insight Presentation 1/6 ✅
 
-**Repository Total: 23 out of 38 strategies (61%)**
+**Repository Total: 22 out of 38 strategies (58%)**
 
 ### Combined Ecosystem (Repository + OpenAI Platform Dashboard)
-- **Phase 0 (Provisioning)**: Installation 3/5 ✅, Authentication 3/3 ✅ **(+1 from Dashboard)**
+- **Phase 0 (Provisioning)**: Installation 2/5 ✅, Authentication 3/3 ✅ **(+1 from Dashboard)**
 - **Phase I (Specification)**: SUT Preparation 3/4 ✅, Benchmark Inputs 3/4 ✅, Benchmark References 2/2 ✅
 - **Phase II (Execution)**: SUT Invocation 3/4 ✅
 - **Phase III (Assessment)**: Individual Scoring 3/4 ✅, Aggregation 2/2 ✅
 - **Phase IV (Reporting)**: Insight Presentation 5/6 ✅ **(+4 from Dashboard)**
 
-**Combined Total: 28 out of 38 strategies (74%)**
+**Combined Total: 27 out of 38 strategies (71%)**
 
 ### What OpenAI Platform Dashboard Adds
 1. **Phase 0-B-1**: Evaluation platform authentication
